@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Your Name Photography{% endblock %}
+
+{% block content %}
+<div class="gallery-container">
+    <div class="gallery-header">
+        <h1 style="text-align: center; font-size: 3rem; margin-bottom: 1rem; color: #333;">Portfolio</h1>
+        <p style="text-align: center; color: #666; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            Capturing moments that tell stories. Each photograph is a window into a world of emotions, beauty, and fleeting moments frozen in time.
+        </p>
+    </div>
+
+    <div class="gallery-grid" id="galleryGrid">
+        {% for image in images %}
+        <div class="gallery-item" onclick="openAlbum('{{ image.Album }}', '{{ image.Title }}')">
+            <img src="{{ image.Image_URL }}" alt="{{ image.Title }}" loading="lazy">
+            <div class="gallery-overlay">
+                <div class="overlay-content">
+                    <h3>{{ image.Title }}</h3>
+                    <p>{{ image.Album }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Album Modal -->
+<div id="albumModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h2 id="albumTitle" style="color: white; text-align: center; margin-bottom: 2rem;"></h2>
+        <div id="albumGrid" class="modal-grid">
+            <!-- Album images will be loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Album functionality
+function openAlbum(albumName, imageTitle) {
+    const modal = document.getElementById('albumModal');
+    const albumTitle = document.getElementById('albumTitle');
+    const albumGrid = document.getElementById('albumGrid');
+    
+    albumTitle.textContent = albumName;
+    albumGrid.innerHTML = '<div style="color: white; text-align: center;">Loading...</div>';
+    
+    // Fetch album images
+    fetch(`/api/album/${encodeURIComponent(albumName)}`)
+        .then(response => response.json())
+        .then(images => {
+            albumGrid.innerHTML = '';
+            
+            if (images.length === 0) {
+                albumGrid.innerHTML = '<div style="color: white; text-align: center;">No images found in this album.</div>';
+                return;
+            }
+            
+            images.forEach(image => {
+                const imgElement = document.createElement('img');
+                imgElement.src = image.Image_URL;
+                imgElement.alt = image.Title;
+                imgElement.loading = 'lazy';
+                imgElement.onclick = () => openFullscreen(image.Image_URL);
+                imgElement.style.cursor = 'pointer';
+                albumGrid.appendChild(imgElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading album:', error);
+            albumGrid.innerHTML = '<div style="color: white; text-align: center;">Error loading album images.</div>';
+        });
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    const modal = document.getElementById('albumModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function openFullscreen(imageUrl) {
+    const fullscreenDiv = document.createElement('div');
+    fullscreenDiv.style.position = 'fixed';
+    fullscreenDiv.style.top = '0';
+    fullscreenDiv.style.left = '0';
+    fullscreenDiv.style.width = '100%';
+    fullscreenDiv.style.height = '100%';
+    fullscreenDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.95)';
+    fullscreenDiv.style.zIndex = '3000';
+    fullscreenDiv.style.display = 'flex';
+    fullscreenDiv.style.alignItems = 'center';
+    fullscreenDiv.style.justifyContent = 'center';
+    fullscreenDiv.style.cursor = 'pointer';
+    
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+    img.style.objectFit = 'contain';
+    
+    fullscreenDiv.appendChild(img);
+    fullscreenDiv.onclick = () => {
+        document.body.removeChild(fullscreenDiv);
+        document.body.style.overflow = 'auto';
+    };
+    
+    document.body.appendChild(fullscreenDiv);
+    document.body.style.overflow = 'hidden';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('albumModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
+
+// Lazy loading and smooth animations
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    // Add staggered animation to gallery items
+    galleryItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

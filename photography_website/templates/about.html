@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}About - Your Name Photography{% endblock %}
+
+{% block content %}
+<div class="about-container">
+    <div class="about-hero">
+        <div class="about-image">
+            <img src="{{ url_for('static', filename='images/profile.jpg') }}" alt="Your Name - Photographer">
+        </div>
+        <div class="about-content">
+            <h1>Hello, I'm [Your Name]</h1>
+            <h2>Photographer & Visual Storyteller</h2>
+            <p>
+                Photography chose me long before I chose it. What started as curiosity about capturing light 
+                has evolved into a passionate pursuit of freezing fleeting moments that tell profound stories.
+            </p>
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0;">
+                <div style="text-align: center;">
+                    <h3 style="font-size: 2rem; color: #333; margin-bottom: 0.5rem;">500+</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Photos Captured</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="font-size: 2rem; color: #333; margin-bottom: 0.5rem;">50+</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Happy Clients</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="font-size: 2rem; color: #333; margin-bottom: 0.5rem;">3+</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Years Experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-sections">
+        <div class="about-section" style="margin-bottom: 3rem;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem; color: #333;">My Journey</h2>
+            <p style="line-height: 1.8; color: #555; margin-bottom: 1.5rem;">
+                My photography journey began in [Year] when I picked up my first camera - a simple point-and-shoot 
+                that opened my eyes to the magic of capturing moments. What started as a hobby quickly became an obsession 
+                as I discovered the power of visual storytelling.
+            </p>
+            <p style="line-height: 1.8; color: #555; margin-bottom: 1.5rem;">
+                Over the years, I've had the privilege of photographing everything from intimate portraits to 
+                breathtaking landscapes. Each shoot teaches me something new about light, composition, and the 
+                art of seeing the extraordinary in the ordinary.
+            </p>
+            <p style="line-height: 1.8; color: #555;">
+                Today, I work primarily in [Your Specialties - e.g., portrait, landscape, street photography], 
+                but I'm always excited to explore new styles and challenges. My goal is simple: to create images 
+                that not only look beautiful but also evoke emotion and tell meaningful stories.
+            </p>
+        </div>
+
+        <div class="about-section" style="margin-bottom: 3rem;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem; color: #333;">My Approach</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div class="approach-item" style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Authentic Moments</h3>
+                    <p style="color: #666; line-height: 1.6;">
+                        I believe the best photographs happen when people are comfortable and natural. 
+                        My approach focuses on capturing genuine emotions and authentic interactions.
+                    </p>
+                </div>
+                <div class="approach-item" style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Natural Light</h3>
+                    <p style="color: #666; line-height: 1.6;">
+                        Light is the foundation of photography. I love working with natural light to create 
+                        warm, inviting images that feel timeless and true to the moment.
+                    </p>
+                </div>
+                <div class="approach-item" style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Personal Connection</h3>
+                    <p style="color: #666; line-height: 1.6;">
+                        Every client and subject has a unique story. I take time to understand what makes 
+                        each person special, ensuring their personality shines through in every image.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-section" style="margin-bottom: 3rem;">
+            <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem; color: #333;">Equipment & Technical</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: #333;">Primary Gear</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Camera: [Your Camera Model - e.g., Canon EOS R5]</li>
+                        <li>Primary Lens: [e.g., 24-70mm f/2.8L]</li>
+                        <li>Portrait Lens: [e.g., 85mm f/1.4L]</li>
+                        <li>Wide Angle: [e.g., 16-35mm f/2.8L]</li>
+                        <li>Lighting: [e.g., Profoto B10]</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: #333;">Post-Processing</h3>
+                    <p style="color: #666; line-height: 1.8;">
+                        I use Adobe Lightroom and Photoshop for post-processing, focusing on enhancing 
+                        the natural beauty of each image while maintaining authenticity. My editing style 
+                        emphasizes natural colors, balanced exposure, and timeless aesthetics.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem; color: #333;">Services & Availability</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                <div class="service-item" style="border: 1px solid #e1e5e9; padding: 2rem; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Portrait Sessions</h3>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 1rem;">
+                        Individual, couple, and family portraits in natural settings or studio environments.
+                    </p>
+                    <p style="color: #333; font-weight: 500;">Starting at $200</p>
+                </div>
+                <div class="service-item" style="border: 1px solid #e1e5e9; padding: 2rem; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Event Photography</h3>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 1rem;">
+                        Capturing special moments at weddings, parties, and corporate events.
+                    </p>
+                    <p style="color: #333; font-weight: 500;">Starting at $500</p>
+                </div>
+                <div class="service-item" style="border: 1px solid #e1e5e9; padding: 2rem; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Commercial Work</h3>
+                    <p style="color: #666; line-height: 1.6; margin-bottom: 1rem;">
+                        Product photography, headshots, and brand photography for businesses.
+                    </p>
+                    <p style="color: #333; font-weight: 500;">Custom Pricing</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="margin-bottom: 1rem; color: #333;">Ready to Work Together?</h3>
+                <p style="color: #666; margin-bottom: 2rem;">
+                    I'm currently accepting new clients and would love to discuss your photography needs.
+                </p>
+                <a href="{{ url_for('connect') }}" style="display: inline-block; background: #333; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 5px; font-weight: 500; transition: background 0.3s ease;">
+                    Get In Touch
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

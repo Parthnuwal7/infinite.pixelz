@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Connect - Your Name Photography{% endblock %}
+
+{% block content %}
+<div class="contact-container">
+    <div class="contact-header" style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #333;">Let's Connect</h1>
+        <p style="color: #666; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            I'd love to hear about your photography needs and discuss how we can work together 
+            to create something amazing. Whether it's a portrait session, event coverage, or 
+            commercial project, let's start the conversation.
+        </p>
+    </div>
+
+    <div class="contact-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;">
+        <div class="contact-info">
+            <h2 style="margin-bottom: 2rem; color: #333;">Get In Touch</h2>
+            
+            <div class="contact-method" style="margin-bottom: 2rem;">
+                <h3 style="display: flex; align-items: center; margin-bottom: 0.5rem; color: #333;">
+                    <i class="fas fa-envelope" style="margin-right: 1rem; color: #666;"></i>
+                    Email
+                </h3>
+                <p style="color: #666; margin-left: 2.5rem;">your.email@gmail.com</p>
+            </div>
+
+            <div class="contact-method" style="margin-bottom: 2rem;">
+                <h3 style="display: flex; align-items: center; margin-bottom: 0.5rem; color: #333;">
+                    <i class="fas fa-phone" style="margin-right: 1rem; color: #666;"></i>
+                    Phone
+                </h3>
+                <p style="color: #666; margin-left: 2.5rem;">+1 (555) 123-4567</p>
+            </div>
+
+            <div class="contact-method" style="margin-bottom: 2rem;">
+                <h3 style="display: flex; align-items: center; margin-bottom: 0.5rem; color: #333;">
+                    <i class="fas fa-map-marker-alt" style="margin-right: 1rem; color: #666;"></i>
+                    Location
+                </h3>
+                <p style="color: #666; margin-left: 2.5rem;">Your City, State<br>Available for travel</p>
+            </div>
+
+            <div class="contact-method" style="margin-bottom: 2rem;">
+                <h3 style="display: flex; align-items: center; margin-bottom: 0.5rem; color: #333;">
+                    <i class="fas fa-clock" style="margin-right: 1rem; color: #666;"></i>
+                    Response Time
+                </h3>
+                <p style="color: #666; margin-left: 2.5rem;">Usually within 24 hours</p>
+            </div>
+
+            <div class="social-connect" style="margin-top: 3rem;">
+                <h3 style="margin-bottom: 1rem; color: #333;">Follow My Work</h3>
+                <div class="social-links-large" style="display: flex; gap: 1rem;">
+                    <a href="https://instagram.com/yourusername" target="_blank" 
+                       style="display: flex; align-items: center; gap: 0.5rem; color: #666; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid #e1e5e9; border-radius: 5px; transition: all 0.3s ease;">
+                        <i class="fab fa-instagram"></i>
+                        Instagram
+                    </a>
+                    <a href="https://facebook.com/yourusername" target="_blank" 
+                       style="display: flex; align-items: center; gap: 0.5rem; color: #666; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid #e1e5e9; border-radius: 5px; transition: all 0.3s ease;">
+                        <i class="fab fa-facebook"></i>
+                        Facebook
+                    </a>
+                    <a href="https://linkedin.com/in/yourusername" target="_blank" 
+                       style="display: flex; align-items: center; gap: 0.5rem; color: #666; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid #e1e5e9; border-radius: 5px; transition: all 0.3s ease;">
+                        <i class="fab fa-linkedin"></i>
+                        LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-form-container">
+            <form method="POST" class="contact-form">
+                <h2 style="margin-bottom: 1.5rem; color: #333;">Send a Message</h2>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+
+                <div class="form-group">
+                    <label for="project_type">Project Type</label>
+                    <select id="project_type" name="project_type" style="width: 100%; padding: 1rem; border: 2px solid #e1e5e9; border-radius: 5px; font-family: inherit; font-size: 1rem;">
+                        <option value="">Select a project type</option>
+                        <option value="portrait">Portrait Session</option>
+                        <option value="event">Event Photography</option>
+                        <option value="wedding">Wedding Photography</option>
+                        <option value="commercial">Commercial/Business</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="budget">Budget Range</label>
+                    <select id="budget" name="budget" style="width: 100%; padding: 1rem; border: 2px solid #e1e5e9; border-radius: 5px; font-family: inherit; font-size: 1rem;">
+                        <option value="">Select budget range</option>
+                        <option value="under-500">Under $500</option>
+                        <option value="500-1000">$500 - $1,000</option>
+                        <option value="1000-2500">$1,000 - $2,500</option>
+                        <option value="2500-5000">$2,500 - $5,000</option>
+                        <option value="over-5000">Over $5,000</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="event_date">Event/Session Date</label>
+                    <input type="date" id="event_date" name="event_date" style="width: 100%; padding: 1rem; border: 2px solid #e1e5e9; border-radius: 5px; font-family: inherit; font-size: 1rem;">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Tell me about your project *</label>
+                    <textarea id="message" name="message" placeholder="Describe your vision, location preferences, number of people involved, and any specific requirements..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane" style="margin-right: 0.5rem;"></i>
+                    Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="contact-footer" style="margin-top: 4rem; text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-bottom: 1rem; color: #333;">What Happens Next?</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 2rem;">
+            <div>
+                <div style="width: 60px; height: 60px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">1</div>
+                <h4 style="margin-bottom: 0.5rem; color: #333;">I'll Respond</h4>
+                <p style="color: #666; font-size: 0.9rem;">Usually within 24 hours with questions and initial thoughts</p>
+            </div>
+            <div>
+                <div style="width: 60px; height: 60px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">2</div>
+                <h4 style="margin-bottom: 0.5rem; color: #333;">We'll Discuss</h4>
+                <p style="color: #666; font-size: 0.9rem;">Phone call or video chat to plan your session</p>
+            </div>
+            <div>
+                <div style="width: 60px; height: 60px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">3</div>
+                <h4 style="margin-bottom: 0.5rem; color: #333;">Let's Create</h4>
+                <p style="color: #666; font-size: 0.9rem;">Schedule your session and create amazing images together</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.social-links-large a:hover {
+    border-color: #333;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .social-links-large {
+        flex-direction: column;
+    }
+    
+    .social-links-large a {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
