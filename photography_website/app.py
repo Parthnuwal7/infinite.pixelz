@@ -11,6 +11,7 @@ from flask_moment import Moment
 load_dotenv()
 
 app = Flask(__name__)
+moment = Moment(app)
 app.secret_key = os.getenv('SECRET_KEY')  # Change this to a random secret key
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID')
 CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE')
@@ -130,5 +131,4 @@ def api_album(album_name):
     return jsonify(album_images)
 
 if __name__ == '__main__':
-    moment = Moment(app)
     app.run(debug=True)
