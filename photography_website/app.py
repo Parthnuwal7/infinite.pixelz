@@ -63,7 +63,7 @@ def get_albums_from_sheet():
         print(f"Error fetching albums: {e}")
         return []
 
-def save_contact_to_sheet(name, email, message):
+def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, message):
     """Save contact form data to Google Sheets"""
     try:
         client = get_google_sheet_client()
@@ -72,7 +72,7 @@ def save_contact_to_sheet(name, email, message):
         
         sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Contacts')
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sheet.append_row([timestamp, name, email, message, 'New'])
+        sheet.append_row([timestamp, name, email, phone, project_type, budget, event_date, message, 'New'])
         return True
     except Exception as e:
         print(f"Error saving contact: {e}")
@@ -96,10 +96,14 @@ def connect():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
+        phone = request.form.get('phone')
+        project_type = request.form.get('project_type')
+        budget = request.form.get('budget')
+        event_date = request.form.get('event_date')
         message = request.form.get('message')
         
         if name and email and message:
-            if save_contact_to_sheet(name, email, message):
+            if save_contact_to_sheet(name, email, phone, project_type, budget, event_date, message):
                 flash('Thank you for your message! I\'ll get back to you soon.', 'success')
             else:
                 flash('Sorry, there was an error sending your message. Please try again.', 'error')
