@@ -100,10 +100,10 @@ def home():
     albums = get_albums_from_sheet()
     return render_template('home.html', images=images, albums=albums)
 
-@app.route('/about')
-def about():
-    """About me page"""
-    return render_template('about.html')
+# @app.route('/about')
+# def about():
+#     """About me page"""
+#     return render_template('about.html')
 
 @app.route('/about')
 def about():
