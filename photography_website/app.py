@@ -63,6 +63,21 @@ def get_albums_from_sheet():
         print(f"Error fetching albums: {e}")
         return []
 
+def get_testimonials_from_sheet():
+    """Fetch reviews data from Google Sheets"""
+    try:
+        client = get_google_sheet_client()
+        if not client:
+            return []
+        
+        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Testimonials')
+        records = sheet.get_all_records()
+        testimonials = sorted(records, key=lambda x: x["date"], reverse=True)
+        return testimonials
+    except Exception as e:
+        print(f"Error fetching albums: {e}")
+        return []
+
 def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, message):
     """Save contact form data to Google Sheets"""
     try:
@@ -89,6 +104,11 @@ def home():
 def about():
     """About me page"""
     return render_template('about.html')
+
+@app.route('/about')
+def about():
+    testimonials = get_testimonials_from_sheet()
+    return render_template("about.html", testimonials=testimonials)
 
 @app.route('/connect', methods=['GET', 'POST'])
 def connect():
