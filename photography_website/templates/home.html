@@ -4,17 +4,10 @@
 
 {% block content %}
 <div class="gallery-container">
-    <!-- <div class="gallery-header">
-        <h1 style="text-align: center; font-size: 3rem; margin-bottom: 1rem; color: #333;">Portfolio</h1>
-        <p style="text-align: center; color: #666; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
-            Capturing moments that tell stories. Each photograph is a window into a world of emotions, beauty, and fleeting moments frozen in time.
-        </p>
-    </div> -->
-
     <div class="gallery-grid" id="galleryGrid">
         {% for image in images %}
-        <div class="gallery-item" onclick="openAlbum('{{ image.Album }}', '{{ image.Title }}')">
-            <img src="{{ image.Image_URL }}" alt="{{ image.Title }}" loading="lazy">
+        <div class="gallery-item" onclick="openAlbum('{{ image.Album }}', '{{ image.Title }}')" style="animation-delay: {{ '%.1f' % (loop.index0*0.1) }}s;">
+            <img src="{{ image.Image_URL }}" alt="{{ image.Title }}" loading="lazy" onload="this.parentElement.classList.add('loaded')">
             <div class="gallery-overlay">
                 <div class="overlay-content">
                     <h3>{{ image.Title }}</h3>
@@ -40,6 +33,17 @@
 
 {% block scripts %}
 <script>
+// Masonry layout utilities
+function initMasonry() {
+    const grid = document.getElementById('galleryGrid');
+    const items = grid.querySelectorAll('.gallery-item');
+    
+    // Add staggered loading animation
+    items.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.05}s`;
+    });
+}
+
 // Album functionality
 function openAlbum(albumName, imageTitle) {
     const modal = document.getElementById('albumModal');
@@ -47,7 +51,7 @@ function openAlbum(albumName, imageTitle) {
     const albumGrid = document.getElementById('albumGrid');
     
     albumTitle.textContent = albumName;
-    albumGrid.innerHTML = '<div style="color: white; text-align: center;">Loading...</div>';
+    albumGrid.innerHTML = '<div style="color: white; text-align: center; padding: 2rem;">Loading...</div>';
     
     // Fetch album images
     fetch(`/api/album/${encodeURIComponent(albumName)}`)
@@ -56,23 +60,25 @@ function openAlbum(albumName, imageTitle) {
             albumGrid.innerHTML = '';
             
             if (images.length === 0) {
-                albumGrid.innerHTML = '<div style="color: white; text-align: center;">No images found in this album.</div>';
+                albumGrid.innerHTML = '<div style="color: white; text-align: center; padding: 2rem;">No images found in this album.</div>';
                 return;
             }
             
-            images.forEach(image => {
+            images.forEach((image, index) => {
                 const imgElement = document.createElement('img');
                 imgElement.src = image.Image_URL;
                 imgElement.alt = image.Title;
                 imgElement.loading = 'lazy';
                 imgElement.onclick = () => openFullscreen(image.Image_URL);
                 imgElement.style.cursor = 'pointer';
+                imgElement.style.animationDelay = `${index * 0.05}s`;
+                imgElement.classList.add('fade-in');
                 albumGrid.appendChild(imgElement);
             });
         })
         .catch(error => {
             console.error('Error loading album:', error);
-            albumGrid.innerHTML = '<div style="color: white; text-align: center;">Error loading album images.</div>';
+            albumGrid.innerHTML = '<div style="color: white; text-align: center; padding: 2rem;">Error loading album images.</div>';
         });
     
     modal.style.display = 'block';
@@ -98,17 +104,25 @@ function openFullscreen(imageUrl) {
     fullscreenDiv.style.alignItems = 'center';
     fullscreenDiv.style.justifyContent = 'center';
     fullscreenDiv.style.cursor = 'pointer';
+    fullscreenDiv.style.animation = 'fadeIn 0.3s ease';
     
     const img = document.createElement('img');
     img.src = imageUrl;
     img.style.maxWidth = '90%';
     img.style.maxHeight = '90%';
     img.style.objectFit = 'contain';
+    img.style.borderRadius = '8px';
+    img.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
     
     fullscreenDiv.appendChild(img);
     fullscreenDiv.onclick = () => {
-        document.body.removeChild(fullscreenDiv);
-        document.body.style.overflow = 'auto';
+        fullscreenDiv.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => {
+            if (document.body.contains(fullscreenDiv)) {
+                document.body.removeChild(fullscreenDiv);
+            }
+            document.body.style.overflow = 'auto';
+        }, 300);
     };
     
     document.body.appendChild(fullscreenDiv);
@@ -127,24 +141,110 @@ window.onclick = function(event) {
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeModal();
+        
+        // Close fullscreen if open
+        const fullscreen = document.querySelector('[style*="z-index: 3000"]');
+        if (fullscreen) {
+            fullscreen.click();
+        }
     }
 });
 
-// Lazy loading and smooth animations
-document.addEventListener('DOMContentLoaded', function() {
-    const galleryItems = document.querySelectorAll('.gallery-item');
+// Enhanced image loading with better UX
+function handleImageLoad(img) {
+    img.style.opacity = '0';
+    img.style.transition = 'opacity 0.3s ease';
     
-    // Add staggered animation to gallery items
-    galleryItems.forEach((item, index) => {
-        item.style.opacity = '0';
-        item.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            item.style.opacity = '1';
-            item.style.transform = 'translateY(0)';
-        }, index * 100);
+    if (img.complete) {
+        img.style.opacity = '1';
+    } else {
+        img.onload = function() {
+            this.style.opacity = '1';
+        };
+    }
+}
+
+// Intersection Observer for better performance
+function initLazyLoading() {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                handleImageLoad(img);
+                observer.unobserve(img);
+            }
+        });
     });
+
+    document.querySelectorAll('.gallery-item img').forEach(img => {
+        imageObserver.observe(img);
+    });
+}
+
+// Masonry reflow on window resize (debounced)
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+const handleResize = debounce(() => {
+    // Force reflow for masonry layout
+    const grid = document.getElementById('galleryGrid');
+    const currentDisplay = grid.style.display;
+    grid.style.display = 'none';
+    grid.offsetHeight; // Trigger reflow
+    grid.style.display = currentDisplay;
+}, 250);
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initMasonry();
+    initLazyLoading();
+    
+    // Add resize listener for masonry reflow
+    window.addEventListener('resize', handleResize);
+    
+    // Add CSS for fade animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    `;
+    document.head.appendChild(style);
 });
+
+// Preload images for better UX
+function preloadNextImages() {
+    const images = document.querySelectorAll('.gallery-item img');
+    const imageUrls = Array.from(images).map(img => img.src);
+    
+    imageUrls.forEach((url, index) => {
+        if (index < 10) { // Preload first 10 images
+            const img = new Image();
+            img.src = url;
+        }
+    });
+}
+
+// Call preload after initial load
+window.addEventListener('load', preloadNextImages);
 </script>
 {% endblock %}
