@@ -74,7 +74,7 @@ body {
 
 /* Main Content */
 .main-content {
-    margin-top: 80px;
+    margin-top: 10px;
     min-height: calc(100vh - 80px);
 }
 
