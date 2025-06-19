@@ -194,13 +194,29 @@ function debounce(func, wait) {
     };
 }
 
+// const handleResize = debounce(() => {
+//     // Force reflow for masonry layout
+//     const grid = document.getElementById('galleryGrid');
+//     const currentDisplay = grid.style.display;
+//     grid.style.display = 'none';
+//     grid.offsetHeight; // Trigger reflow
+//     grid.style.display = currentDisplay;
+// }, 250);
+
+let lastWidth = window.innerWidth;
+
 const handleResize = debounce(() => {
-    // Force reflow for masonry layout
-    const grid = document.getElementById('galleryGrid');
-    const currentDisplay = grid.style.display;
-    grid.style.display = 'none';
-    grid.offsetHeight; // Trigger reflow
-    grid.style.display = currentDisplay;
+    const newWidth = window.innerWidth;
+    if (newWidth !== lastWidth) {
+        lastWidth = newWidth;
+
+        // Force reflow for masonry layout
+        const grid = document.getElementById('galleryGrid');
+        const currentDisplay = grid.style.display;
+        grid.style.display = 'none';
+        grid.offsetHeight; // Trigger reflow
+        grid.style.display = currentDisplay;
+    }
 }, 250);
 
 // Initialize everything when DOM is loaded
