@@ -162,14 +162,14 @@ img {
 
 @media (max-width: 1200px) {
     .gallery-grid {
-        column-count: 3;
+        column-count: 4;
         column-gap: 0;
     }
 }
 
 @media (max-width: 768px) {
     .gallery-grid {
-        column-count: 2;
+        column-count: 4;
         column-gap: 0;
     }
     
@@ -180,7 +180,7 @@ img {
 
 @media (max-width: 480px) {
     .gallery-grid {
-        column-count: 1;
+        column-count: 4;
         column-gap: 0;
     }
 }
