@@ -24,6 +24,7 @@ body {
     z-index: 1000;
     padding: 1rem 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 .nav-container {
@@ -41,6 +42,7 @@ body {
     color: #333;
     text-decoration: none;
     letter-spacing: 2px;
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 .nav-menu {
@@ -56,6 +58,7 @@ body {
     letter-spacing: 1px;
     transition: color 0.3s ease;
     position: relative;
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 .nav-link:hover,
