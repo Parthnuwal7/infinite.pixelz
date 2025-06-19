@@ -114,20 +114,88 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const toggle = document.getElementById('darkModeToggle');
-            const body = document.body;
-
-            // Load saved preference
-            if (localStorage.getItem('theme') === 'dark') {
-                body.classList.add('dark-mode');
-            }
-
-            toggle.addEventListener('click', function () {
-                body.classList.toggle('dark-mode');
-                const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
-                localStorage.setItem('theme', mode);
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeToggleMobile = document.getElementById('darkModeToggleMobile');
+        const body = document.body;
+    
+        // Hamburger menu toggle
+        function toggleMobileMenu() {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+            body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : 'auto';
+        }
+    
+        // Close mobile menu
+        function closeMobileMenu() {
+            hamburger.classList.remove('active');
+            mobileMenu.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            body.style.overflow = 'auto';
+        }
+    
+        // Event listeners for hamburger menu
+        if (hamburger) {
+            hamburger.addEventListener('click', toggleMobileMenu);
+        }
+        
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', closeMobileMenu);
+        }
+    
+        // Close menu when clicking on mobile nav links
+        if (mobileMenu) {
+            const mobileNavLinks = mobileMenu.querySelectorAll('.nav-link');
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
             });
+        }
+    
+        // Dark mode functionality
+        function updateDarkModeIcons() {
+            const moonIcon = '<i class="fas fa-moon"></i>';
+            const sunIcon = '<i class="fas fa-sun"></i>';
+            
+            if (darkModeToggle) {
+                darkModeToggle.innerHTML = body.classList.contains('dark-mode') ? sunIcon : moonIcon;
+            }
+            if (darkModeToggleMobile) {
+                darkModeToggleMobile.innerHTML = body.classList.contains('dark-mode') ? 
+                    sunIcon + ' Light Mode' : moonIcon + ' Dark Mode';
+            }
+        }
+    
+        function toggleDarkMode() {
+            body.classList.toggle('dark-mode');
+            const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', mode);
+            updateDarkModeIcons();
+        }
+    
+        // Load saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+        }
+        updateDarkModeIcons();
+    
+        // Dark mode event listeners
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+        }
+        if (darkModeToggleMobile) {
+            darkModeToggleMobile.addEventListener('click', toggleDarkMode);
+        }
+    
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 550) {
+                closeMobileMenu();
+            }
         });
+    });
     </script>
 
     {% block scripts %}{% endblock %}
