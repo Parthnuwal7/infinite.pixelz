@@ -32,14 +32,38 @@
             <div class="nav-logo">
                 <a href="{{ url_for('home') }}">Infinite.pixelz</a>
             </div>
+            
+            <!-- Desktop Navigation -->
             <div class="nav-menu">
                 <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">HOME</a>
                 <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">ABOUT</a>
                 <a href="{{ url_for('connect') }}" class="nav-link {% if request.endpoint == 'connect' %}active{% endif %}">CONNECT</a>
+                <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
             </div>
-            <button id="darkModeToggle" title="Toggle Dark Mode" style="background: none; border: none; font-size: 1.2rem; color: #666; cursor: pointer;">Dark Mode</button>
+    
+            <!-- Mobile Navigation -->
+            <div class="nav-menu mobile" id="mobileMenu">
+                <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">HOME</a>
+                <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">ABOUT</a>
+                <a href="{{ url_for('connect') }}" class="nav-link {% if request.endpoint == 'connect' %}active{% endif %}">CONNECT</a>
+                <button id="darkModeToggleMobile" class="dark-mode-toggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i> Dark Mode
+                </button>
+            </div>
+    
+            <!-- Hamburger Menu -->
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </nav>
+    
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
