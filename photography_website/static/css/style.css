@@ -169,7 +169,7 @@ img {
 
 @media (max-width: 768px) {
     .gallery-grid {
-        column-count: 4;
+        column-count: 3;
         column-gap: 0;
     }
     
@@ -180,7 +180,7 @@ img {
 
 @media (max-width: 480px) {
     .gallery-grid {
-        column-count: 4;
+        column-count: 2;
         column-gap: 0;
     }
 }
