@@ -37,6 +37,7 @@
                 <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">ABOUT</a>
                 <a href="{{ url_for('connect') }}" class="nav-link {% if request.endpoint == 'connect' %}active{% endif %}">CONNECT</a>
             </div>
+            <button id="darkModeToggle" title="Toggle Dark Mode" style="background: none; border: none; font-size: 1.2rem; color: #666; cursor: pointer;">Dark Mode</button>
         </div>
     </nav>
 
@@ -87,6 +88,24 @@
 
     <!-- JavaScript
     <script src="{{ url_for('static', filename='js/main.js') }}"></script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('darkModeToggle');
+            const body = document.body;
+
+            // Load saved preference
+            if (localStorage.getItem('theme') === 'dark') {
+                body.classList.add('dark-mode');
+            }
+
+            toggle.addEventListener('click', function () {
+                body.classList.toggle('dark-mode');
+                const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
+                localStorage.setItem('theme', mode);
+            });
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
