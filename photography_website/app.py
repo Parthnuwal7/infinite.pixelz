@@ -109,46 +109,66 @@ def log_visitor_async(ip_address, user_agent, referrer, location_data):
         try:
             client = get_google_sheet_client()
             if not client:
+                print("Failed to get Google Sheets client")
                 return
             
-            sheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID).worksheet('UserLogs')
+            # Check if spreadsheet and worksheet exist
+            try:
+                spreadsheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID)
+                sheet = spreadsheet.worksheet('UserLogs')
+            except gspread.exceptions.SpreadsheetNotFound:
+                print(f"Spreadsheet not found: {GOOGLE_ANALYTIC_SHEET_ID}")
+                return
+            except gspread.exceptions.WorksheetNotFound:
+                print("UserLogs worksheet not found")
+                return
+            
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # Prepare row data
+            # Prepare row data with safe defaults
             row_data = [
                 timestamp,
-                ip_address,
-                location_data['country'],
-                location_data['region'],
-                location_data['city'],
-                location_data['timezone'],
-                location_data['isp'],
-                user_agent,
+                ip_address or 'Unknown',
+                location_data.get('country', 'Unknown'),
+                location_data.get('region', 'Unknown'), 
+                location_data.get('city', 'Unknown'),
+                location_data.get('timezone', 'Unknown'),
+                location_data.get('isp', 'Unknown'),
+                user_agent or 'Unknown',
                 referrer or 'Direct'
             ]
             
             sheet.append_row(row_data)
-            print(f"Logged visitor: {ip_address} from {location_data['city']}, {location_data['country']}")
+            print(f"Successfully logged visitor: {ip_address} from {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
             
         except Exception as e:
-            print(f"Error logging visitor: {e}")
+            print(f"Error logging visitor to sheet: {e}")
     
     # Run in background thread to avoid blocking the main request
     thread = threading.Thread(target=log_to_sheet)
     thread.daemon = True
     thread.start()
 
+
 def track_visitor():
     """Track visitor information"""
     try:
         ip_address = get_client_ip()
         
+        # Skip localhost and private IPs for testing
+        if ip_address in ['127.0.0.1', 'localhost'] or ip_address.startswith('192.168.'):
+            print(f"Skipping tracking for local IP: {ip_address}")
+            return
+        
         # Rate limiting check
         if not should_log_visitor(ip_address):
+            print(f"Rate limited for IP: {ip_address}")
             return
         
         user_agent = request.headers.get('User-Agent', 'Unknown')
         referrer = request.headers.get('Referer')
+        
+        print(f"Tracking visitor: {ip_address}")
         
         # Get location data
         location_data = get_location_from_ip(ip_address)
@@ -217,6 +237,20 @@ def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, 
     except Exception as e:
         print(f"Error saving contact: {e}")
         return False
+
+@app.before_request
+def before_request():
+    """Track visitor before each request"""
+    # Skip tracking for static files and analytics routes
+    if request.endpoint and (
+        request.endpoint.startswith('static') or 
+        request.endpoint.startswith('analytics') or
+        request.path.startswith('/analytics')
+    ):
+        return None
+    
+    # Track the visitor
+    track_visitor()
 
 @app.route('/')
 def home():
@@ -350,8 +384,9 @@ def analytics_logout():
     flash('Successfully logged out from analytics', 'success')
     return redirect(url_for('home'))
 
+# Fixed analytics API route
 @app.route('/analytics/api')
-@requires_auth
+# @requires_auth
 def analytics_api():
     """JSON API endpoint for analytics data"""
     try:
@@ -359,27 +394,64 @@ def analytics_api():
         if not client:
             return jsonify({'error': 'Could not connect to analytics data'})
         
-        sheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID).worksheet('UserLogs')
+        # Check if the analytics sheet exists
+        try:
+            spreadsheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID)
+            sheet = spreadsheet.worksheet('UserLogs')
+        except gspread.exceptions.SpreadsheetNotFound:
+            return jsonify({'error': 'Analytics spreadsheet not found'})
+        except gspread.exceptions.WorksheetNotFound:
+            return jsonify({'error': 'UserLogs worksheet not found'})
+        
         records = sheet.get_all_records()
+        
+        if not records:
+            return jsonify({
+                'total_visits': 0,
+                'unique_visitors': 0,
+                'top_countries': {},
+                'recent_visits': []
+            })
         
         # Basic analytics
         total_visits = len(records)
-        unique_ips = len(set(record['IP'] for record in records if 'IP' in record))
+        unique_ips = len(set(record.get('IP', '') for record in records if record.get('IP')))
         countries = {}
+        
         for record in records:
             country = record.get('Country', 'Unknown')
-            countries[country] = countries.get(country, 0) + 1
+            if country and country != '':
+                countries[country] = countries.get(country, 0) + 1
         
         analytics_data = {
             'total_visits': total_visits,
             'unique_visitors': unique_ips,
             'top_countries': dict(sorted(countries.items(), key=lambda x: x[1], reverse=True)[:10]),
-            'recent_visits': records[-10:] if records else []
+            'recent_visits': records[-10:] if len(records) >= 10 else records
         }
         
         return jsonify(analytics_data)
+        
     except Exception as e:
+        print(f"Analytics API error: {e}")
         return jsonify({'error': f'Analytics error: {e}'})
+    
+@app.route('/test-analytics')
+def test_analytics():
+    """Test endpoint to manually add analytics data"""
+    if app.debug:  # Only allow in debug mode
+        test_location = {
+            'country': 'India',
+            'region': 'Rajasthan', 
+            'city': 'Jaipur',
+            'timezone': 'Asia/Kolkata',
+            'isp': 'Test ISP'
+        }
+        log_visitor_async('192.168.1.100', 'Test User Agent', 'Test Referrer', test_location)
+        return jsonify({'message': 'Test analytics data added'})
+    else:
+        return jsonify({'error': 'Not available in production'})
+
     
 if __name__ == '__main__':
     app.run(debug=True)

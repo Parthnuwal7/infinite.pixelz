@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -376,5 +376,247 @@
     <button class="refresh-btn" onclick="window.location.reload()">
         🔄 Refresh Data
     </button>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .nav-bar {
+            background: #343a40;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+        .nav-bar a:hover {
+            background: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <a href="{{ url_for('home') }}">← Back to Home</a>
+        <a href="{{ url_for('analytics_logout') }}">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>Analytics Dashboard</h1>
+        
+        {% if error %}
+            <div class="error">
+                <h3>Error Loading Analytics Data</h3>
+                <p>{{ error }}</p>
+                <p><strong>Troubleshooting Steps:</strong></p>
+                <ul>
+                    <li>Check if the Google Sheets Analytics spreadsheet exists</li>
+                    <li>Verify the GOOGLE_ANALYTIC_SHEET_ID in your .env file</li>
+                    <li>Ensure the 'UserLogs' worksheet exists in the spreadsheet</li>
+                    <li>Check your Google Sheets API credentials</li>
+                </ul>
+            </div>
+        {% elif data %}
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ data.total_visits }}</div>
+                    <div>Total Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ data.unique_visitors }}</div>
+                    <div>Unique Visitors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ data.top_countries|length }}</div>
+                    <div>Countries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ data.top_cities|length }}</div>
+                    <div>Cities</div>
+                </div>
+            </div>
+
+            {% if data.top_countries %}
+            <div class="chart-container">
+                <h3>Top Countries</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Country</th>
+                            <th>Visits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for country, count in data.top_countries.items() %}
+                        <tr>
+                            <td>{{ country }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if data.top_cities %}
+            <div class="chart-container">
+                <h3>Top Cities</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Visits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for city, count in data.top_cities.items() %}
+                        <tr>
+                            <td>{{ city }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if data.recent_visits %}
+            <div class="chart-container">
+                <h3>Recent Visits</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>IP Address</th>
+                            <th>Location</th>
+                            <th>User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in data.recent_visits %}
+                        <tr>
+                            <td>{{ visit.Timestamp }}</td>
+                            <td>{{ visit.IP }}</td>
+                            <td>{{ visit.City }}, {{ visit.Country }}</td>
+                            <td>{{ visit['User Agent'][:50] }}{% if visit['User Agent']|length > 50 %}...{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if data.daily_visits %}
+            <div class="chart-container">
+                <h3>Daily Visits (Last 30 Days)</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Visits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for date, count in data.daily_visits.items() %}
+                        <tr>
+                            <td>{{ date }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="error">
+                <h3>No Analytics Data Available</h3>
+                <p>No visitor data has been collected yet. Make sure:</p>
+                <ul>
+                    <li>Visitors are accessing your website</li>
+                    <li>The tracking function is working properly</li>
+                    <li>The Google Sheets integration is set up correctly</li>
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if config.DEBUG %}
+        <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-radius: 4px;">
+            <h4>Debug Mode - Test Analytics</h4>
+            <p>You can test the analytics logging by visiting: <a href="{{ url_for('test_analytics') }}">/test-analytics</a></p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Auto-refresh every 5 minutes
+        setTimeout(function() {
+            location.reload();
+        }, 300000);
+    </script>
 </body>
 </html>
