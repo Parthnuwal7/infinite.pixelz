@@ -190,7 +190,7 @@ img {
     overflow: hidden;
     border-radius: 0;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
     background: #f8f9fa;
 }
 
@@ -203,7 +203,7 @@ img {
     width: 100%;
     height: auto;
     display: block;
-    transition: transform 0.3s ease;
+    /* transition: transform 0.3s ease; */
     border-radius: 0;
 }
 
@@ -240,7 +240,7 @@ img {
     align-items: flex-end;
     justify-content: flex-start;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    /* transition: opacity 0.3s ease; */
     padding: 1.5rem;
     border-radius: 0;
     z-index: 5;
@@ -419,6 +419,17 @@ img {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
+}
+
+@media (max-width: 850 px) {
+    .social-links {
+        justify-content:center
+    }
+}
+@media (max-width: 480px) {
+    .social-links {
+        justify-content:center
+    }
 }
 
 .social-links a {
