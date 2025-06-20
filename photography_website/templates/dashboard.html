@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #334155;
+        }
+        
+        .chart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .chart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+        
+        .chart-bar-fill {
+            height: 8px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .chart-label {
+            font-size: 0.9rem;
+            color: #475569;
+            min-width: 120px;
+        }
+        
+        .chart-value {
+            font-weight: 600;
+            color: #334155;
+            min-width: 40px;
+            text-align: right;
+        }
+        
+        .recent-visits {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        
+        .recent-visits-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .recent-visits-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        
+        .recent-visits-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .visit-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .visit-item:last-child {
+            border-bottom: none;
+        }
+        
+        .visit-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .visit-location {
+            font-weight: 500;
+            color: #334155;
+        }
+        
+        .visit-details {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        
+        .visit-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: right;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .visit-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .visit-time {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>📊 Analytics Dashboard</h1>
+            <div class="header-actions">
+                <a href="{{ url_for('home') }}" class="btn btn-outline">Portfolio</a>
+                <a href="{{ url_for('analytics_logout') }}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ data.total_visits }}</div>
+                <div class="stat-label">Total Visits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ data.unique_visitors }}</div>
+                <div class="stat-label">Unique Visitors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ data.top_countries|length }}</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ data.recent_visits|length }}</div>
+                <div class="stat-label">Recent Visits</div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- Top Countries -->
+            <div class="chart-card">
+                <h3 class="chart-title">🌍 Top Countries</h3>
+                {% set max_country_visits = data.top_countries.values()|list|first or 1 %}
+                {% for country, visits in data.top_countries.items() %}
+                <div class="chart-item">
+                    <div class="chart-bar">
+                        <span class="chart-label">{{ country }}</span>
+                        <div class="chart-bar-fill" style="width: {{ (visits / max_country_visits * 100)|int }}%; min-width: 20px;"></div>
+                    </div>
+                    <span class="chart-value">{{ visits }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Top Cities -->
+            <div class="chart-card">
+                <h3 class="chart-title">🏙️ Top Cities</h3>
+                {% set max_city_visits = data.top_cities.values()|list|first or 1 %}
+                {% for city, visits in data.top_cities.items() %}
+                <div class="chart-item">
+                    <div class="chart-bar">
+                        <span class="chart-label">{{ city }}</span>
+                        <div class="chart-bar-fill" style="width: {{ (visits / max_city_visits * 100)|int }}%; min-width: 20px;"></div>
+                    </div>
+                    <span class="chart-value">{{ visits }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Daily Visits Chart -->
+        {% if data.daily_visits %}
+        <div class="chart-card" style="margin-bottom: 2rem;">
+            <h3 class="chart-title">📅 Daily Visits (Last 30 Days)</h3>
+            {% set max_daily_visits = data.daily_visits.values()|list|max or 1 %}
+            {% for date, visits in data.daily_visits.items() %}
+            <div class="chart-item">
+                <div class="chart-bar">
+                    <span class="chart-label">{{ date }}</span>
+                    <div class="chart-bar-fill" style="width: {{ (visits / max_daily_visits * 100)|int }}%; min-width: 20px;"></div>
+                </div>
+                <span class="chart-value">{{ visits }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Recent Visits -->
+        <div class="recent-visits">
+            <div class="recent-visits-header">
+                <h3>🕐 Recent Visits</h3>
+            </div>
+            <div class="recent-visits-list">
+                {% for visit in data.recent_visits|reverse %}
+                <div class="visit-item">
+                    <div class="visit-info">
+                        <div class="visit-location">
+                            {% if visit.City and visit.City != 'Unknown' %}
+                                {{ visit.City }}, {{ visit.Country }}
+                            {% else %}
+                                {{ visit.Country or 'Unknown Location' }}
+                            {% endif %}
+                        </div>
+                        <div class="visit-details">
+                            IP: {{ visit.IP }} | 
+                            ISP: {{ visit.ISP or 'Unknown' }}
+                            {% if visit.Referrer and visit.Referrer != 'Direct' %}
+                             | From: {{ visit.Referrer }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="visit-time">{{ visit.Timestamp }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="window.location.reload()">
+        🔄 Refresh Data
+    </button>
+</body>
+</html>
