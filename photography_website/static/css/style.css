@@ -151,7 +151,7 @@ img {
 .gallery-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 5rem 2rem;
 }
 
 .gallery-grid {
@@ -847,7 +847,8 @@ body.dark-mode {
 .dark-mode .section-title,
 .dark-mode h3,
 .dark-mode h2,
-.dark-mode h1{
+.dark-mode h1,
+.dark-mode label{
     color: #ffffffd4;
 }
 
@@ -857,9 +858,12 @@ body.dark-mode {
 }
 
 .dark-mode .service-card,
-.dark-mode .cta-box{
+.dark-mode .cta-box,
+.dark-mode .contact-form,
+.dark-mode .contact-footer{
     background-color: #28282887;
-    border: black
+    border: black;
+    color: #ffffffd4;
 }
 
 .social-links-large a:hover {
