@@ -6,7 +6,7 @@
 <div class="gallery-container">
     <div class="gallery-grid" id="galleryGrid">
         {% for image in images %}
-        <div class="gallery-item" onclick="openAlbum('{{ image.Album }}', '{{ image.Title }}')" style="animation-delay: {{ '%.1f' % (loop.index0*0.1) }}s;">
+        <div class="gallery-item" onclick="openAlbum('{{ image.Album }}', '{{ image.Title }}')" style="animation-delay: 2s;">
             <img src="{{ image.Image_URL }}" alt="{{ image.Title }}" loading="lazy" onload="this.parentElement.classList.add('loaded')">
             <div class="gallery-overlay">
                 <div class="overlay-content">
