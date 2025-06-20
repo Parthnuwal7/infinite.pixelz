@@ -756,11 +756,11 @@ body.dark-mode {
     margin-bottom: 1.5rem;
 }
 
-.card {
+/* .card {
     padding: 1.5rem;
     background: #f8f9fa;
     border-radius: 8px;
-}
+} */
 
 .service-card {
     padding: 2rem;
@@ -842,4 +842,42 @@ body.dark-mode {
 .dark-mode .nav-menu.mobile .dark-mode-toggle {
     border: 1px solid rgba(255, 255, 255, 0.2);
     background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .section-title,
+.dark-mode h3,
+.dark-mode h2,
+.dark-mode h1{
+    color: #ffffffd4;
+}
+
+.dark-mode .section-text,
+.dark-mode .p{
+    color: #848484;
+}
+
+.dark-mode .service-card,
+.dark-mode .cta-box{
+    background-color: #28282887;
+    border: black
+}
+
+.social-links-large a:hover {
+    border-color: #333;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .social-links-large {
+        flex-direction: column;
+    }
+    
+    .social-links-large a {
+        justify-content: center;
+    }
 }
