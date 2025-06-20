@@ -454,8 +454,8 @@ img {
 
 .modal-content {
     position: relative;
-    margin: 5% auto;
-    width: 90%;
+    margin: 3% auto;
+    width: 100%;
     max-width: 1200px;
     height: 80vh;
     overflow-y: auto;
@@ -475,7 +475,7 @@ img {
 .modal-grid {
     column-count: 3;
     column-gap: 0;
-    padding: 2rem;
+    padding: 1rem;
 }
 
 @media (max-width: 768px) {
@@ -486,7 +486,7 @@ img {
 
 @media (max-width: 480px) {
     .modal-grid {
-        column-count: 1;
+        column-count: 2;
     }
 }
 
@@ -495,7 +495,7 @@ img {
     height: auto;
     border-radius: 0;
     margin-bottom: 0;
-    display: inline-block;
+    display: block;
     break-inside: avoid;
     position: relative;
 }
