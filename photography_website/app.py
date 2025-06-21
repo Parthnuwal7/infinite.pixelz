@@ -69,30 +69,95 @@ def get_client_ip():
         return request.remote_addr
 
 def get_location_from_ip(ip_address):
-    """Get location information from IP address using free API"""
-    try:
-        # Using ipapi.co - free tier allows 1000 requests/day
-        if ip_address and ip_address != '127.0.0.1' and not ip_address.startswith('192.168.'):
-            response = requests.get(f'https://ipapi.co/{ip_address}/json/', timeout=3)
-            if response.status_code == 200:
-                data = response.json()
+    """Get location info from IP address using fallback: ipinfo → ip-api → ipapi"""
+    
+    def try_ipinfo(ip):
+        try:
+            resp = requests.get(f"https://ipinfo.io/{ip}/json", timeout=3)
+            if resp.status_code == 200:
+                data = resp.json()
+                loc = data.get('loc', ',').split(',')
+                return {
+                    'country': data.get('country', 'Unknown'),
+                    'region': data.get('region', 'Unknown'),
+                    'city': data.get('city', 'Unknown'),
+                    'timezone': data.get('timezone', 'Unknown'),
+                    'isp': data.get('org', 'Unknown'),
+                    'latitude': loc[0] if len(loc) > 1 else 'Unknown',
+                    'longitude': loc[1] if len(loc) > 1 else 'Unknown',
+                    'source': 'ipinfo.io'
+                }
+        except Exception as e:
+            print(f"[ipinfo.io] Error: {e}")
+        return None
+
+    def try_ipapi_com(ip):
+        try:
+            resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=3)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    'country': data.get('country', 'Unknown'),
+                    'region': data.get('regionName', 'Unknown'),
+                    'city': data.get('city', 'Unknown'),
+                    'timezone': data.get('timezone', 'Unknown'),
+                    'isp': data.get('isp', 'Unknown'),
+                    'latitude': str(data.get('lat', 'Unknown')),
+                    'longitude': str(data.get('lon', 'Unknown')),
+                    'source': 'ip-api.com'
+                }
+        except Exception as e:
+            print(f"[ip-api.com] Error: {e}")
+        return None
+
+    def try_ipapi_co(ip):
+        try:
+            resp = requests.get(f"https://ipapi.co/{ip}/json/", timeout=3)
+            if resp.status_code == 200:
+                data = resp.json()
                 return {
                     'country': data.get('country_name', 'Unknown'),
                     'region': data.get('region', 'Unknown'),
                     'city': data.get('city', 'Unknown'),
                     'timezone': data.get('timezone', 'Unknown'),
-                    'isp': data.get('org', 'Unknown')
+                    'isp': data.get('org', 'Unknown'),
+                    'latitude': str(data.get('latitude', 'Unknown')),
+                    'longitude': str(data.get('longitude', 'Unknown')),
+                    'source': 'ipapi.co'
                 }
-    except Exception as e:
-        print(f"Error getting location for IP {ip_address}: {e}")
-    
-    return {
-        'country': 'Unknown',
-        'region': 'Unknown', 
-        'city': 'Unknown',
-        'timezone': 'Unknown',
-        'isp': 'Unknown'
-    }
+        except Exception as e:
+            print(f"[ipapi.co] Error: {e}")
+        return None
+
+    # Ignore local/private IPs
+    if not ip_address or ip_address.startswith(('127.', '192.168.', '10.', '172.')):
+        return {
+            'country': 'Unknown',
+            'region': 'Unknown',
+            'city': 'Unknown',
+            'timezone': 'Unknown',
+            'isp': 'Unknown',
+            'latitude': 'Unknown',
+            'longitude': 'Unknown',
+            'source': 'invalid_local_ip'
+        }
+
+    # Try in order
+    return (
+        try_ipinfo(ip_address)
+        or try_ipapi_com(ip_address)
+        or try_ipapi_co(ip_address)
+        or {
+            'country': 'Unknown',
+            'region': 'Unknown',
+            'city': 'Unknown',
+            'timezone': 'Unknown',
+            'isp': 'Unknown',
+            'latitude': 'Unknown',
+            'longitude': 'Unknown',
+            'source': 'fallback_failed'
+        }
+    )
 
 def should_log_visitor(ip_address):
     """Check if we should log this visitor based on rate limiting"""
@@ -135,7 +200,10 @@ def log_visitor_async(ip_address, user_agent, referrer, location_data):
                 location_data.get('timezone', 'Unknown'),
                 location_data.get('isp', 'Unknown'),
                 user_agent or 'Unknown',
-                referrer or 'Direct'
+                referrer or 'Direct',
+                location_data.get('latitude','Unknown'),
+                location_data.get('longitude','Unknown'),
+                location_data.get('source','Unknown')
             ]
             
             sheet.append_row(row_data)
