@@ -892,3 +892,20 @@ body.dark-mode {
         justify-content: center;
     }
 }
+
+.fullscreen-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 3rem;
+    padding: 20px 15px;
+    cursor: pointer;
+    z-index: 3001;
+    transition: background 0.3s;
+}
+.fullscreen-nav:hover { background: rgba(255,255,255,0.3); }
+.fullscreen-nav.prev { left: 20px; }
+.fullscreen-nav.next { right: 20px; }

@@ -37,6 +37,7 @@
             <div class="nav-menu">
                 <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">HOME</a>
                 <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">ABOUT</a>
+                <a href="{{ url_for('blog') }}" class="nav-link {% if request.endpoint == 'blog' %}active{% endif %}">BLOG</a>
                 <a href="{{ url_for('connect') }}" class="nav-link {% if request.endpoint == 'connect' %}active{% endif %}">CONNECT</a>
                 <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle Dark Mode" style="padding: 2px 10px 4px 10px">
                     <i class="fas fa-moon" style="size: 0.5rem;"></i>
@@ -47,6 +48,7 @@
             <div class="nav-menu mobile" id="mobileMenu">
                 <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">HOME</a>
                 <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">ABOUT</a>
+                <a href="{{ url_for('blog') }}" class="nav-link {% if request.endpoint == 'blog' %}active{% endif %}">BLOG</a>
                 <a href="{{ url_for('connect') }}" class="nav-link {% if request.endpoint == 'connect' %}active{% endif %}">CONNECT</a>
                 <button id="darkModeToggleMobile" class="dark-mode-toggle" title="Toggle Dark Mode">
                     <i class="fas fa-moon"></i> Dark Mode
