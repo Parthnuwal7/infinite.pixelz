@@ -344,23 +344,6 @@ def about():
     """About me page"""
     return render_template("about.html")
 
-@app.route('/blog')
-def blog():
-    """Blog listing page"""
-    posts = get_blog_posts_from_sheet()
-    return render_template('blog.html', posts=posts)
-
-@app.route('/blog/<post_slug>')
-def blog_post(post_slug):
-    """Individual blog post page"""
-    posts = get_blog_posts_from_sheet()
-    post = next((p for p in posts if p.get('Slug') == post_slug), None)
-    
-    if not post:
-        flash('Blog post not found.', 'error')
-        return redirect(url_for('blog'))
-    
-    return render_template('blog_post.html', post=post)
 
 @app.route('/connect', methods=['GET', 'POST'])
 def connect():
