@@ -272,8 +272,8 @@
     </header>
     
     <div class="container">
-        <!-- Stats Overview -->
-        <div class="stats-grid">
+         Stats Overview -->
+        <!-- <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number">{{ data.total_visits }}</div>
                 <div class="stat-label">Total Visits</div>
@@ -292,9 +292,9 @@
             </div>
         </div>
         
-        <!-- Charts -->
+        <!-- Charts 
         <div class="charts-grid">
-            <!-- Top Countries -->
+            <!-- Top Countries 
             <div class="chart-card">
                 <h3 class="chart-title">🌍 Top Countries</h3>
                 {% set max_country_visits = data.top_countries.values()|list|first or 1 %}
@@ -309,7 +309,7 @@
                 {% endfor %}
             </div>
             
-            <!-- Top Cities -->
+            <!-- Top Cities 
             <div class="chart-card">
                 <h3 class="chart-title">🏙️ Top Cities</h3>
                 {% set max_city_visits = data.top_cities.values()|list|first or 1 %}
@@ -325,7 +325,7 @@
             </div>
         </div>
         
-        <!-- Daily Visits Chart -->
+        <!-- Daily Visits Chart 
         {% if data.daily_visits %}
         <div class="chart-card" style="margin-bottom: 2rem;">
             <h3 class="chart-title">📅 Daily Visits (Last 30 Days)</h3>
@@ -342,7 +342,7 @@
         </div>
         {% endif %}
         
-        <!-- Recent Visits -->
+        <!-- Recent Visits 
         <div class="recent-visits">
             <div class="recent-visits-header">
                 <h3>🕐 Recent Visits</h3>

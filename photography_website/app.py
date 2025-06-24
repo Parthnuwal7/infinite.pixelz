@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, make_response
 import gspread
 from google.oauth2.service_account import Credentials
 import os
@@ -12,6 +12,7 @@ from collections import defaultdict
 import time
 import hashlib
 from functools import wraps
+import uuid
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ ANALYTICS_PASSWORD = os.getenv('ANALYTICS_PASSWORD')
 
 RATE_LIMIT_SECONDS = 300  # 5 minutes
 ip_last_logged = defaultdict(float)
+visitor_sessions = defaultdict(float)  # Track visitor sessions
 
 # Authentication decorator
 def requires_auth(f):
@@ -40,7 +42,6 @@ def verify_password(password):
     """Verify the analytics password"""
     return password == ANALYTICS_PASSWORD
 
-
 # Google Sheets Configuration
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -50,7 +51,6 @@ SCOPE = [
 def get_google_sheet_client():
     """Initialize Google Sheets client"""
     try:
-        # You'll need to add your service account JSON file
         creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPE)
         client = gspread.authorize(creds)
         return client
@@ -60,7 +60,6 @@ def get_google_sheet_client():
 
 def get_client_ip():
     """Get the real client IP address"""
-    # Check for forwarded IP (common with proxies/load balancers)
     if request.headers.get('X-Forwarded-For'):
         return request.headers.get('X-Forwarded-For').split(',')[0].strip()
     elif request.headers.get('X-Real-IP'):
@@ -142,7 +141,6 @@ def get_location_from_ip(ip_address):
             'source': 'invalid_local_ip'
         }
 
-    # Try in order
     return (
         try_ipinfo(ip_address)
         or try_ipapi_com(ip_address)
@@ -159,16 +157,33 @@ def get_location_from_ip(ip_address):
         }
     )
 
-def should_log_visitor(ip_address):
-    """Check if we should log this visitor based on rate limiting"""
+def get_or_create_visitor_id():
+    """Get existing visitor ID from cookie or create new one"""
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        visitor_id = str(uuid.uuid4())
+    return visitor_id
+
+def should_log_visitor(visitor_id, ip_address):
+    """Check if we should log this visitor based on cookie and rate limiting"""
     current_time = time.time()
-    last_logged = ip_last_logged.get(ip_address, 0)
+    
+    # Check if this visitor_id has been logged recently
+    last_logged = visitor_sessions.get(visitor_id, 0)
     if current_time - last_logged >= RATE_LIMIT_SECONDS:
-        ip_last_logged[ip_address] = current_time
+        visitor_sessions[visitor_id] = current_time
         return True
+    
+    # Fallback to IP-based rate limiting for visitors without cookies
+    if not request.cookies.get('visitor_id'):
+        last_logged_ip = ip_last_logged.get(ip_address, 0)
+        if current_time - last_logged_ip >= RATE_LIMIT_SECONDS:
+            ip_last_logged[ip_address] = current_time
+            return True
+    
     return False
 
-def log_visitor_async(ip_address, user_agent, referrer, location_data):
+def log_visitor_async(visitor_id, ip_address, user_agent, referrer, location_data, is_returning):
     """Log visitor data to Google Sheets asynchronously"""
     def log_to_sheet():
         try:
@@ -177,7 +192,6 @@ def log_visitor_async(ip_address, user_agent, referrer, location_data):
                 print("Failed to get Google Sheets client")
                 return
             
-            # Check if spreadsheet and worksheet exist
             try:
                 spreadsheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID)
                 sheet = spreadsheet.worksheet('UserLogs')
@@ -193,6 +207,7 @@ def log_visitor_async(ip_address, user_agent, referrer, location_data):
             # Prepare row data with safe defaults
             row_data = [
                 timestamp,
+                visitor_id or 'Unknown',
                 ip_address or 'Unknown',
                 location_data.get('country', 'Unknown'),
                 location_data.get('region', 'Unknown'), 
@@ -203,25 +218,26 @@ def log_visitor_async(ip_address, user_agent, referrer, location_data):
                 referrer or 'Direct',
                 location_data.get('latitude','Unknown'),
                 location_data.get('longitude','Unknown'),
-                location_data.get('source','Unknown')
+                location_data.get('source','Unknown'),
+                'Returning' if is_returning else 'New'
             ]
             
             sheet.append_row(row_data)
-            print(f"Successfully logged visitor: {ip_address} from {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+            print(f"Successfully logged visitor: {visitor_id} ({ip_address}) from {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')} - {'Returning' if is_returning else 'New'}")
             
         except Exception as e:
             print(f"Error logging visitor to sheet: {e}")
     
-    # Run in background thread to avoid blocking the main request
     thread = threading.Thread(target=log_to_sheet)
     thread.daemon = True
     thread.start()
 
-
 def track_visitor():
-    """Track visitor information"""
+    """Track visitor information with cookie-based unique identification"""
     try:
         ip_address = get_client_ip()
+        visitor_id = get_or_create_visitor_id()
+        is_returning = bool(request.cookies.get('visitor_id'))
         
         # Skip localhost and private IPs for testing
         if ip_address in ['127.0.0.1', 'localhost'] or ip_address.startswith('192.168.'):
@@ -229,23 +245,35 @@ def track_visitor():
             return
         
         # Rate limiting check
-        if not should_log_visitor(ip_address):
-            print(f"Rate limited for IP: {ip_address}")
+        if not should_log_visitor(visitor_id, ip_address):
+            print(f"Rate limited for visitor: {visitor_id}")
             return
         
         user_agent = request.headers.get('User-Agent', 'Unknown')
         referrer = request.headers.get('Referer')
         
-        print(f"Tracking visitor: {ip_address}")
+        print(f"Tracking visitor: {visitor_id} (IP: {ip_address}) - {'Returning' if is_returning else 'New'}")
         
         # Get location data
         location_data = get_location_from_ip(ip_address)
         
         # Log asynchronously to avoid blocking the response
-        log_visitor_async(ip_address, user_agent, referrer, location_data)
+        log_visitor_async(visitor_id, ip_address, user_agent, referrer, location_data, is_returning)
+        
+        # Set visitor cookie in the response (will be handled in after_request)
+        if not is_returning:
+            session['new_visitor_id'] = visitor_id
         
     except Exception as e:
         print(f"Error in track_visitor: {e}")
+
+@app.after_request
+def after_request(response):
+    """Set visitor cookie after request"""
+    if 'new_visitor_id' in session:
+        visitor_id = session.pop('new_visitor_id')
+        response.set_cookie('visitor_id', visitor_id, max_age=365*24*60*60)  # 1 year
+    return response
 
 def get_images_from_sheet():
     """Fetch images data from Google Sheets"""
@@ -254,7 +282,6 @@ def get_images_from_sheet():
         if not client:
             return []
         
-        # Replace with your Google Sheet ID
         sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Images')
         records = sheet.get_all_records()
         return records
@@ -275,21 +302,6 @@ def get_albums_from_sheet():
     except Exception as e:
         print(f"Error fetching albums: {e}")
         return []
-
-# def get_testimonials_from_sheet():
-#     """Fetch reviews data from Google Sheets"""
-#     try:
-#         client = get_google_sheet_client()
-#         if not client:
-#             return []
-        
-#         sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Testimonials')
-#         records = sheet.get_all_records()
-#         testimonials = sorted(records, key=lambda x: x["date"], reverse=True)
-#         return testimonials
-#     except Exception as e:
-#         print(f"Error fetching albums: {e}")
-#         return []
 
 def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, message):
     """Save contact form data to Google Sheets"""
@@ -327,15 +339,28 @@ def home():
     albums = get_albums_from_sheet()
     return render_template('home.html', images=images, albums=albums)
 
-# @app.route('/about')
-# def about():
-#     """About me page"""
-#     return render_template('about.html')
-
 @app.route('/about')
 def about():
-    # testimonials = get_testimonials_from_sheet() (add this (, testimonials=testimonials) to the return function
+    """About me page"""
     return render_template("about.html")
+
+@app.route('/blog')
+def blog():
+    """Blog listing page"""
+    posts = get_blog_posts_from_sheet()
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<post_slug>')
+def blog_post(post_slug):
+    """Individual blog post page"""
+    posts = get_blog_posts_from_sheet()
+    post = next((p for p in posts if p.get('Slug') == post_slug), None)
+    
+    if not post:
+        flash('Blog post not found.', 'error')
+        return redirect(url_for('blog'))
+    
+    return render_template('blog_post.html', post=post)
 
 @app.route('/connect', methods=['GET', 'POST'])
 def connect():
@@ -381,7 +406,7 @@ def api_album(album_name):
     album_images = [img for img in images if img.get('Album', '').lower() == album_name.lower()]
     return jsonify(album_images)
 
-#Routing for Analytics side
+# Analytics routes
 @app.route('/analytics')
 @requires_auth
 def analytics():
@@ -396,7 +421,10 @@ def analytics():
         
         # Basic analytics
         total_visits = len(records)
-        unique_ips = len(set(record['IP'] for record in records if 'IP' in record))
+        unique_visitors = len(set(record.get('Visitor_ID', record.get('IP', '')) for record in records))
+        new_visitors = len([r for r in records if r.get('Visitor_Type') == 'New'])
+        returning_visitors = len([r for r in records if r.get('Visitor_Type') == 'Returning'])
+        
         countries = {}
         cities = {}
         daily_visits = {}
@@ -418,7 +446,9 @@ def analytics():
         
         analytics_data = {
             'total_visits': total_visits,
-            'unique_visitors': unique_ips,
+            'unique_visitors': unique_visitors,
+            'new_visitors': new_visitors,
+            'returning_visitors': returning_visitors,
             'top_countries': dict(sorted(countries.items(), key=lambda x: x[1], reverse=True)[:10]),
             'top_cities': dict(sorted(cities.items(), key=lambda x: x[1], reverse=True)[:10]),
             'daily_visits': dict(sorted(daily_visits.items(), reverse=True)[:30]),
@@ -437,7 +467,7 @@ def analytics_login():
         if verify_password(password):
             session['analytics_authenticated'] = True
             session.permanent = True
-            app.permanent_session_lifetime = timedelta(hours=24)  # Stay logged in for 24 hours
+            app.permanent_session_lifetime = timedelta(hours=24)
             flash('Successfully logged in to analytics dashboard', 'success')
             return redirect(url_for('analytics'))
         else:
@@ -452,9 +482,7 @@ def analytics_logout():
     flash('Successfully logged out from analytics', 'success')
     return redirect(url_for('home'))
 
-# Fixed analytics API route
 @app.route('/analytics/api')
-# @requires_auth
 def analytics_api():
     """JSON API endpoint for analytics data"""
     try:
@@ -462,7 +490,6 @@ def analytics_api():
         if not client:
             return jsonify({'error': 'Could not connect to analytics data'})
         
-        # Check if the analytics sheet exists
         try:
             spreadsheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID)
             sheet = spreadsheet.worksheet('UserLogs')
@@ -483,7 +510,7 @@ def analytics_api():
         
         # Basic analytics
         total_visits = len(records)
-        unique_ips = len(set(record.get('IP', '') for record in records if record.get('IP')))
+        unique_visitors = len(set(record.get('Visitor_ID', record.get('IP', '')) for record in records))
         countries = {}
         
         for record in records:
@@ -493,7 +520,7 @@ def analytics_api():
         
         analytics_data = {
             'total_visits': total_visits,
-            'unique_visitors': unique_ips,
+            'unique_visitors': unique_visitors,
             'top_countries': dict(sorted(countries.items(), key=lambda x: x[1], reverse=True)[:10]),
             'recent_visits': records[-10:] if len(records) >= 10 else records
         }
@@ -507,7 +534,7 @@ def analytics_api():
 @app.route('/test-analytics')
 def test_analytics():
     """Test endpoint to manually add analytics data"""
-    if app.debug:  # Only allow in debug mode
+    if app.debug:
         test_location = {
             'country': 'India',
             'region': 'Rajasthan', 
@@ -515,11 +542,42 @@ def test_analytics():
             'timezone': 'Asia/Kolkata',
             'isp': 'Test ISP'
         }
-        log_visitor_async('192.168.1.100', 'Test User Agent', 'Test Referrer', test_location)
+        visitor_id = get_or_create_visitor_id()
+        log_visitor_async(visitor_id, '192.168.1.100', 'Test User Agent', 'Test Referrer', test_location, False)
         return jsonify({'message': 'Test analytics data added'})
     else:
         return jsonify({'error': 'Not available in production'})
-
     
+def get_blog_posts_from_sheet():
+    """Fetch blog posts from Google Sheets"""
+    try:
+        client = get_google_sheet_client()
+        if not client:
+            return []
+        
+        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Blog')
+        records = sheet.get_all_records()
+        # Sort by date, newest first
+        return sorted(records, key=lambda x: x.get('Date', ''), reverse=True)
+    except Exception as e:
+        print(f"Error fetching blog posts: {e}")
+        return []
+
+@app.route('/blog')
+def blog():
+    """Blog listing page"""
+    posts = get_blog_posts_from_sheet()
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    """Individual blog post"""
+    posts = get_blog_posts_from_sheet()
+    post = next((p for p in posts if p.get('Slug') == slug), None)
+    if not post:
+        flash('Blog post not found', 'error')
+        return redirect(url_for('blog'))
+    return render_template('blog_post.html', post=post)
+
 if __name__ == '__main__':
     app.run(debug=True)

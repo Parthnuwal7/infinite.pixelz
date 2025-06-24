@@ -80,7 +80,7 @@ function openAlbum(albumName, imageTitle) {
             console.error('Error loading album:', error);
             albumGrid.innerHTML = '<div style="color: white; text-align: center; padding: 2rem;">Error loading album images.</div>';
         });
-    
+    currentAlbumImages = images; //Check here for errors
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
@@ -92,6 +92,7 @@ function closeModal() {
 }
 
 function openFullscreen(imageUrl) {
+    currentImageIndex = currentAlbumImages.findIndex(img => img.Image_URL === imageUrl);
     const fullscreenDiv = document.createElement('div');
     fullscreenDiv.style.position = 'fixed';
     fullscreenDiv.style.top = '0';
@@ -113,8 +114,21 @@ function openFullscreen(imageUrl) {
     img.style.objectFit = 'contain';
     img.style.borderRadius = '8px';
     img.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
+
+    // Navigation buttons
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '&#8249;';
+    prevBtn.className = 'fullscreen-nav prev';
+    prevBtn.onclick = (e) => { e.stopPropagation(); navigateImage(-1); };
     
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '&#8250;';
+    nextBtn.className = 'fullscreen-nav next';
+    nextBtn.onclick = (e) => { e.stopPropagation(); navigateImage(1); };
+    
+    fullscreenDiv.appendChild(prevBtn);
     fullscreenDiv.appendChild(img);
+    fullscreenDiv.appendChild(nextBtn);
     fullscreenDiv.onclick = () => {
         fullscreenDiv.style.animation = 'fadeOut 0.3s ease forwards';
         setTimeout(() => {
@@ -127,6 +141,15 @@ function openFullscreen(imageUrl) {
     
     document.body.appendChild(fullscreenDiv);
     document.body.style.overflow = 'hidden';
+}
+
+function navigateImage(direction) {
+    currentImageIndex += direction;
+    if (currentImageIndex < 0) currentImageIndex = currentAlbumImages.length - 1;
+    if (currentImageIndex >= currentAlbumImages.length) currentImageIndex = 0;
+    
+    const img = document.querySelector('[style*="z-index: 3000"] img');
+    img.src = currentAlbumImages[currentImageIndex].Image_URL;
 }
 
 // Close modal when clicking outside
