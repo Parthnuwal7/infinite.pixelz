@@ -13,6 +13,7 @@ import time
 import hashlib
 from functools import wraps
 import uuid
+from markupsafe import Markup
 
 load_dotenv()
 
