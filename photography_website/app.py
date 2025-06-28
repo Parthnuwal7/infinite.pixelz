@@ -554,7 +554,7 @@ def get_blog_posts_from_sheet():
         if not client:
             return []
         
-        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Blog')
+        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Blogs')
         records = sheet.get_all_records()
         # Sort by date, newest first
         return sorted(records, key=lambda x: x.get('Date', ''), reverse=True)
