@@ -17,6 +17,10 @@ import uuid
 load_dotenv()
 
 app = Flask(__name__)
+def nl2br(value):
+    return Markup(value.replace('\n', '<br>\n'))
+
+app.jinja_env.filters['nl2br'] = nl2br
 moment = Moment(app)
 app.secret_key = os.getenv('SECRET_KEY')  
 GOOGLE_SHEET_ID = os.getenv('GOOGLE_SHEET_ID')
