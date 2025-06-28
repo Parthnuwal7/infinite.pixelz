@@ -352,8 +352,8 @@ def before_request():
 def home():
     """Home page with image gallery"""
     images = get_images_from_sheet()
-    albums = get_albums_from_sheet()
-    return render_template('home.html', images=images, albums=albums)
+    # albums = get_albums_from_sheet()
+    return render_template('home.html', images=images) # ,albums = albums
 
 @app.route('/about')
 def about():
