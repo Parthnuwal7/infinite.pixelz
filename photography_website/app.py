@@ -301,19 +301,19 @@ def get_images_from_sheet():
         print(f"Error fetching images: {e}")
         return []
 
-def get_albums_from_sheet():
-    """Fetch albums data from Google Sheets"""
-    try:
-        client = get_google_sheet_client()
-        if not client:
-            return []
+# def get_albums_from_sheet():
+#     """Fetch albums data from Google Sheets"""
+#     try:
+#         client = get_google_sheet_client()
+#         if not client:
+#             return []
         
-        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Albums')
-        records = sheet.get_all_records()
-        return records
-    except Exception as e:
-        print(f"Error fetching albums: {e}")
-        return []
+#         sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet('Albums')
+#         records = sheet.get_all_records()
+#         return records
+#     except Exception as e:
+#         print(f"Error fetching albums: {e}")
+#         return []
 
 def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, message):
     """Save contact form data to Google Sheets"""
