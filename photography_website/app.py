@@ -267,6 +267,18 @@ def track_visitor():
     except Exception as e:
         print(f"Error in track_visitor: {e}")
 
+def is_visitor_blocked(visitor_id):
+    try:
+        client = get_google_sheet_client()
+        if not client:
+            return False
+        sheet = client.open_by_key(GOOGLE_ANALYTIC_SHEET_ID).worksheet('Blacklist')
+        blocked_ids = sheet.col_values(1)[1:]  # Assuming visitor IDs are in column A and skipping A1
+        return visitor_id in blocked_ids
+    except Exception as e:
+        print(f"Error checking blocked visitors: {e}")
+        return False
+
 @app.after_request
 def after_request(response):
     """Set visitor cookie after request"""
@@ -328,6 +340,10 @@ def before_request():
         request.path.startswith('/analytics')
     ):
         return None
+    # Block specific visitors
+    visitor_id = get_or_create_visitor_id()
+    if is_visitor_blocked(visitor_id):
+        return render_template('blocked.html'), 403
     
     # Track the visitor
     track_visitor()
