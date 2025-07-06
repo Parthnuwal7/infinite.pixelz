@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, make_response
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, make_response, g
 import gspread
 from google.oauth2.service_account import Credentials
 import os
@@ -14,6 +14,7 @@ import hashlib
 from functools import wraps
 import uuid
 from markupsafe import Markup
+from threading import Lock 
 
 load_dotenv()
 
@@ -30,9 +31,15 @@ CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE')
 GOOGLE_ANALYTIC_SHEET_ID = os.getenv('GOOGLE_ANALYTIC_SHEET_ID')
 ANALYTICS_PASSWORD = os.getenv('ANALYTICS_PASSWORD')
 
-RATE_LIMIT_SECONDS = 300  # 5 minutes
+RATE_LIMIT_SECONDS = 600  # 10 minutes
 ip_last_logged = defaultdict(float)
 visitor_sessions = defaultdict(float)  # Track visitor sessions
+
+# --- NEW: Caching Variables ---
+cached_unique_visitors = {'count': 'N/A', 'last_updated': 0}
+CACHE_TIMEOUT_SECONDS = 3600  # Cache unique visitors for 1 hour (adjust as needed)
+cache_lock = Lock() # Lock for thread-safe cache access
+# --- END NEW: Caching Variables ---
 
 # Authentication decorator
 def requires_auth(f):
@@ -323,7 +330,7 @@ def save_contact_to_sheet(name, email, phone, project_type, budget, event_date, 
         return False
 
 @app.before_request
-def before_request():
+def before_request_handler():
     """Track visitor before each request"""
     # Skip tracking for static files and analytics routes
     if request.endpoint and (
@@ -339,6 +346,50 @@ def before_request():
 
     # Track the visitor
     track_visitor()
+
+# --- NEW: Caching Functions and Context Processor ---
+def update_unique_visitors_cache():
+    """Fetches unique visitor count and updates the cache."""
+    global cached_unique_visitors
+    with cache_lock:
+        current_time = time.time()
+        # Only update if cache is stale or if it's the very first time
+        if current_time - cached_unique_visitors['last_updated'] > CACHE_TIMEOUT_SECONDS or cached_unique_visitors['last_updated'] == 0:
+            print("Updating unique visitors cache...")
+            analytics_data, error = fetch_and_process_analytics_data()
+            if analytics_data:
+                cached_unique_visitors['count'] = analytics_data.get('unique_visitors', 'N/A')
+                cached_unique_visitors['last_updated'] = current_time
+                print(f"Cache updated: {cached_unique_visitors['count']}")
+            else:
+                print(f"Failed to update unique visitors cache: {error}")
+                cached_unique_visitors['count'] = 'Error' # Indicate an error if data fetch fails
+        else:
+            print("Using cached unique visitors count (still fresh).")
+
+@app.before_first_request
+def initialize_cache():
+    """Initializes the unique visitors cache when the app first starts."""
+    print("Initializing unique visitors cache...")
+    update_unique_visitors_cache()
+
+@app.context_processor
+def inject_unique_visitors():
+    """
+    Injects unique_visitors into all templates.
+    Triggers cache update asynchronously if stale.
+    """
+    with cache_lock:
+        current_time = time.time()
+        # If cache is stale, trigger an asynchronous update
+        if current_time - cached_unique_visitors['last_updated'] > CACHE_TIMEOUT_SECONDS:
+            # Check if an update is already running to avoid multiple threads starting
+            # This is a basic check; for robust solutions, consider a flag or queue.
+            # For simplicity, we just start a new thread. The lock prevents concurrent write issues.
+            threading.Thread(target=update_unique_visitors_cache).start()
+            print("Background cache update initiated.")
+        return dict(unique_visitors=cached_unique_visitors['count'])
+# --- END NEW: Caching Functions and Context Processor ---
 
 @app.route('/')
 def home():
