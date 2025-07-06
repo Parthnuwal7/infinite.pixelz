@@ -367,12 +367,6 @@ def update_unique_visitors_cache():
         else:
             print("Using cached unique visitors count (still fresh).")
 
-@app.before_first_request
-def initialize_cache():
-    """Initializes the unique visitors cache when the app first starts."""
-    print("Initializing unique visitors cache...")
-    update_unique_visitors_cache()
-
 @app.context_processor
 def inject_unique_visitors():
     """
